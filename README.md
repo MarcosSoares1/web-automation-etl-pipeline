@@ -46,16 +46,16 @@ A lógica de extração utiliza:
 
 ---
 
-## 3. Geração de Arquivo de Streaming
-Durante o processo de extração, o sistema pode gerar um arquivo de acompanhamento (streaming), em formato `.xlsx` ou `.txt`, contendo os registros já processados até aquele momento.
+### 3. Streaming de dados durante a extração
 
-Este arquivo de streaming tem os seguintes objetivos:
-- Permitir acompanhamento da execução em tempo quase real
-- Facilitar a conferência e validação dos dados extraídos
-- Aumentar a transparência do processo para o time de negócio
-- Minimizar impacto em caso de interrupção, permitindo retomada mais precisa
+Durante o processamento, a automação grava cada resultado parcial em um arquivo de streaming, permitindo acompanhar o progresso em tempo real.
 
-Na versão pública, o caminho e o formato deste arquivo podem ser configurados e utilizados como exemplo de estratégia de monitoramento em pipelines de automação.
+O formato de streaming pode ser:
+
+- `saida_streaming.txt` (texto separado por ponto e vírgula)
+- `saida_streaming.xlsx` (caso configurado no .env)
+
+Por padrão, esta versão utiliza o formato `.txt`, que é mais leve e mais adequado para acompanhamento em tempo real.
 
 ---
 
@@ -74,18 +74,20 @@ Na versão pública, o caminho e o formato deste arquivo podem ser configurados 
 ```text
 project/
 │
-├── extractor_portal.py               # Núcleo da automação (versão pública)
-├── main_extracao_portal.py           # Interface gráfica (opcional)
-├── selectors_example.json            # Mapa de seletores fictícios
-├── .env.example                      # Variáveis de ambiente
+├── extrator_portal.py
+├── selectors_example.json
+├── .env.example
+├── requirements.txt
+├── .gitignore
+├── README.md
 │
 ├── dados/
-│   ├── input_sample.xlsx             # Planilha de entrada (exemplo)
-│   ├── output_example.xlsx           # Planilha de saída (exemplo)
-│   └── streaming_example.xlsx        # Arquivo de streaming (exemplo)
+│   ├── inserir_dados.xlsx
+│   ├── saida_streaming.xlsx
+│   ├── streaming_exemplo.txt
 │
-├── logs/                             # Registro de logs da automação
-└── README.md                         # Este documento
+└── logs/              # criado automaticamente em tempo de execução (não versionado)
+
 ```
 
 ## 6. Configuração e Execução
@@ -107,7 +109,7 @@ Crie um arquivo .env baseado em .env.example:
 PORTAL_URL=https://portal-financeiro-confidencial.com/login
 DRIVER_PATH=C:\Drivers\msedgedriver.exe
 SELECTORS_FILE=selectors.json
-STREAMING_OUTPUT_PATH=./dados/streaming_saida.xlsx
+STREAMING_OUTPUT_PATH=./dados/saida_streaming.txt
 ```
 
 ### 6.3 Seletores
@@ -135,13 +137,13 @@ Copiar código
 
 ```bash
 
-python main_extracao_portal.py
+python extrator_portal.py
 ```
 
 ## 7.2 Via execução direta (modo script)
 
 ```bash
-python extractor_portal.py
+python extrator_portal.py
 ```
 
 -> Durante a execução, o sistema irá:
@@ -159,18 +161,18 @@ python extractor_portal.py
 ---
 ## 8. Exemplo de Entrada, Saída e Streaming
 
-Entrada (input_sample.xlsx)
-CPF
-10000000191
-50000000285
+Entrada (inserir_dados.xlsx)
 
-Streaming (streaming_example.xlsx)
+Nome	CPF	Matricula	Data_Extracao	Hora_Extracao	dt_nasc	renda																			
+Ana Souza	00000000191	10234	2025-02-01	08:10	1978-03-20	2500																			
+
+Streaming (streaming_exemplo.txt)
 Arquivo atualizado ao longo da execução, contendo linhas já processadas, status e eventuais mensagens de controle.
 
-Saída (output_example.xlsx)
+Saída (saida_streaming.xlsx)
 
-CPF	Status	ParcelasPagas	Saldo
-10000000191	ok	12	1235.00
+CPF	nome	DDDres	Tel_res	DDD_cel	Celular	Matricula	ttl_Parc_Pg	Parc_venc	ParcmAtraso_Parc_Pagas	Taxa	VlrParc	sld_ttal_Data
+00000000191	Ana Souza	61	33445566	61	991234567	10234	12	0	0	1.80	255.90	2025-02-01
 50000000285	erro	-	-
 
 ## 9. Evolução Futura e Migração para AWS
